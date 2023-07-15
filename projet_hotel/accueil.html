@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Accueil</title>
+    <meta charset="UTF-8" />
+    <script src="bibliotheques/pixi.js"></script>
+
+  </head>
+  <body>
+  <center>
+    <h1>Accueil</h1></br>
+    <form>
+      <select id="etage">
+        <option value="rdc" selected onclick="changeetage()">Rez-de-chaussée
+        <option value="1e" onclick="changeetage()">1ère étage
+        <option value="2e" onclick="changeetage()">2ème étage
+      </select>
+    </form>
+    <link rel="stylesheet" href="accueilcss.css">
+    <p>Date : <input id="sel_date" type="date" onchange="traiter_date()"/></p>
+
+    <script>
+        function traiter_date() {
+          dateselect = (document.getElementById("sel_date").value);
+              let xhr = new XMLHttpRequest(); // instanciation d'un objet XMLHttpRequest
+              xhr.onreadystatechange = function() {
+                  if (xhr.readyState == 4  &&  xhr.status == 200) {
+                    let donnees = JSON.parse(xhr.responseText);
+                          // récupération de la réponse du serveur au format JSON contenu dans xhr.responseText
+                        if (donnees.length != 0) {
+                          chb_occupe.push(donnees[0][0]);
+                        }
+                    }
+              }
+              xhr.open("GET", "test.php?date=" + dateselect, true); // préparation de la requête HTTP (ici la méthode GET, appel d'un script PHP avec un paramètre)
+              xhr.send(); // envoi de la requête HTTP
+            }
+
+
+
+        var chb_occupe = [];
+
+        function onButtonOver(nom, event) {
+            this.isOver = true;
+            var infobulle = new PIXI.Text(infob(nom));
+            message = infobulle;
+            infobulle.x = /*event.clientX -*/ 10;
+            infobulle.y =/* event.clientY -*/ 170;
+            appli.stage.addChild(infobulle);
+            return infobulle;
+        }
+
+        function onButtonOut(message) {
+            this.isOver = false;
+            appli.stage.removeChild(message);
+            message.destroy();
+        }
+
+        function infob (nom){
+              var message = nom + " ";
+          return message;
+        }
+
+        function infobulle (chambre){
+            traiter_date();
+
+              let xhr = new XMLHttpRequest(); //instanciation d'un objet XMLHttpRequest
+              xhr.onreadystatechange = function() {
+                  if (xhr.readyState == 4  &&  xhr.status == 200) {
+
+                  let donnees = JSON.parse(xhr.responseText);
+                      if (donnees.length != 0) {
+                        let infobullevar;
+                        chambre.g.on('pointerover', (event) => infobullevar = onButtonOver(donnees[0], event));
+                        chambre.g.on('pointerout', (event) => onButtonOut(infobullevar));
+                      }
+                  }
+              }
+              xhr.open("GET", "infobulle.php?chambre=" + chambre.n + "&date=" + dateselect, true);
+
+              xhr.send(); //envoi de la requête HTTP
+        }
+
+        function traiter(chambre) {
+            traiter_date();
+            occupe_2 = 0;
+
+            for (let i = 0; i < chb_occupe.length; i++){
+                if (chambre.n == chb_occupe[i]){
+                  occupe_2 = 1;
+                }
+            }
+
+            if (occupe_2 == 0){
+              let nom = prompt("Nom du client :", "");
+              chb_occupe.push(chambre.n);
+              let xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function() {
+                  if (xhr.readyState == 4  &&  xhr.status == 200) {
+                    let donnees = JSON.parse(xhr.responseText);
+                    }
+              }
+              xhr.open("GET", "reserver.php?nom=" + nom + "&date=" + dateselect + "&chambre=" + chambre, true);
+              xhr.send(); // envoi de la requête HTTP
+            }
+
+            if (occupe_2 == 1){
+              if (window.confirm("Confirmer la suppresion")){
+                let xhr = new XMLHttpRequest(); // instanciation d'un objet XMLHttpRequest
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4  &&  xhr.status == 200) {
+                        }
+                }
+                xhr.open("GET", "supprimer.php?date=" + dateselect + "&chambre=" + chambre, true);
+                xhr.send(); // envoi de la requête HTTP
+                chb_occupe = [];
+              }
+            }
+            changeetage();
+        }
+
+        function dessinerChambre(chambre) {
+            traiter_date();
+
+            let couleur = '0x01AD43';
+
+            let xhr = new XMLHttpRequest(); // instanciation d'un objet XMLHttpRequest
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4  &&  xhr.status == 200) {
+
+                let donnees = JSON.parse(xhr.responseText);
+                        // récupération de la réponse du serveur au format JSON contenu dans xhr.responseText
+
+                    if (donnees.length != 0) {
+                      couleur = '0xEF2922'; // rouge
+                      chb_occupe.push(chambre);
+                    }
+                }
+
+                chambre.g.lineStyle(2); //largeur, couleur du trait
+                chambre.g.beginFill(couleur); //(x, y, largeur, hauteur)
+                chambre.g.drawRect(chambre.x, chambre.y, chambre.l, chambre.h);
+                chambre.g.endFill();
+
+            }
+            xhr.open("GET", "occupe.php?chambre=" + chambre.n + "&date=" + dateselect, true);
+
+            xhr.send(); // envoi de la requête HTTP
+        }
+
+        // création de l'application Pixi en spécifiant notamment la largeur, hauteur
+        const appli = new PIXI.Application({ width: 1000, height: 1000, backgroundColor: 0xffffff,  antialias: true, clearBeforeRender: true });
+        document.body.appendChild(appli.view); // ajout de l'appli Pixi dans la page web
+
+
+        const style1 = new PIXI.TextStyle({
+          fontFamily: "Arial",
+          fontSize: 14
+        });
+
+
+        // rectangle
+        const rectangle = new PIXI.Graphics();
+        rectangle.beginFill(0xADA8A8); //(x, y, largeur, hauteur)
+        rectangle.drawRect(200, 100, 740, 75);
+        rectangle.endFill();
+
+        appli.stage.addChild(rectangle); //ajout à la scène (stage)
+
+        //création des messages
+        const message1 = new PIXI.Text("Rue", style1);
+        message1.x = 550;
+        message1.y = 150;
+        appli.stage.addChild(message1);
+
+        // rectangle
+        const rectangle2 = new PIXI.Graphics();
+        rectangle2.beginFill(0xE1E1E1); //(x, y, largeur, hauteur)
+        rectangle2.drawRect(250, 320, 250, 50);
+        rectangle2.endFill();
+
+        appli.stage.addChild(rectangle2); //ajout à la scène (stage)
+
+        //création des messages
+        const message2 = new PIXI.Text("Terrasse", style1);
+        message2.x = 350;
+        message2.y = 350;
+        appli.stage.addChild(message2);
+
+        // rectangle
+        const rectangle3 = new PIXI.Graphics();
+        rectangle3.beginFill(0x7BD3F3); //(x, y, largeur, hauteur)
+        rectangle3.drawRect(300, 380, 150, 75);
+        rectangle3.endFill();
+
+        appli.stage.addChild(rectangle3); //ajout à la scène (stage)
+
+        //création des messages
+        const message3 = new PIXI.Text("Piscine", style1);
+        message3.x = 355;
+        message3.y = 435;
+        appli.stage.addChild(message3);
+
+        // rectangle
+        const rectangle4 = new PIXI.Graphics();
+        rectangle4.beginFill(0x30BA43); //(x, y, largeur, hauteur)
+        rectangle4.drawRect(660, 180, 240, 390);
+        rectangle4.endFill();
+
+        appli.stage.addChild(rectangle4); //ajout à la scène (stage)
+
+        //création des messages
+        const message4 = new PIXI.Text("Parc", style1);
+        message4.x = 665;
+        message4.y = 190;
+        appli.stage.addChild(message4);
+
+        // rectangle
+        const rectangle5 = new PIXI.Graphics();
+        rectangle5.lineStyle(2, 000000); //largeur, couleur du trait
+        rectangle5.beginFill(0xffffff); //(x, y, largeur, hauteur)
+        rectangle5.drawPolygon([
+                                250, 185,
+                                650, 185,
+                                650, 495,
+                                515, 495,
+                                515, 315,
+                                250, 315
+                            ]);
+        rectangle5.endFill();
+
+        appli.stage.addChild(rectangle5); //ajout à la scène (stage)
+
+        x=205;
+        for (let i=0; i<8; i++) {
+            //cercle
+            const cercle = new PIXI.Graphics(); // (x, y, largeur, hauteur)
+            cercle.beginFill(0x9F750D);
+            cercle.drawCircle(225, x, 8);
+            cercle.endFill();
+
+            appli.stage.addChild(cercle);
+            x=x+40;
+        }
+
+        //création des messages
+        const message5 = new PIXI.Text("Châtaigniers", style1);
+        message5.x = 200;
+        message5.y = 500;
+        appli.stage.addChild(message5);
+
+        let tab1 = [{x: 400, y: 500}, {x: 425, y: 525}, {x: 450, y: 500}, {x: 475, y: 525}, {x: 500, y: 550}, {x: 500, y: 500}, {x: 525, y: 525}, {x: 550, y: 550}, {x: 575, y: 525}, {x: 600, y: 550}, {x: 625, y: 575}, {x: 625, y: 525}, {x: 650, y: 550}, {x: 675, y: 570}, {x: 670, y: 515}, {x: 690, y: 540}, {x: 725, y: 560}, {x: 710, y: 500}, {x: 730, y: 530}, {x: 765, y: 555}, {x: 730, y: 475}, {x: 750, y: 505}, {x: 780, y: 530}, {x: 775, y: 475}, {x: 800, y: 500}, {x: 805, y: 460}, {x: 840, y: 475}, {x: 845, y: 450}, {x: 865, y: 425}, {x: 880, y: 445}, {x: 890, y: 410}, {x: 915, y: 430}, {x: 915, y: 395}, {x: 915, y: 360}]; //déplacer sapin
+        // parcours du tableau
+        for(let i=0; i<tab1.length; i++) {
+            const ellipse = new PIXI.Graphics(); // (x, y, largeur, hauteur)
+            ellipse.lineStyle(2, 0x4A914F); //largeur, couleur du trait
+            ellipse.beginFill(0x4A914F, 1);
+            ellipse.drawEllipse(tab1[i].x, tab1[i].y, 13, 5);
+            ellipse.endFill();
+            appli.stage.addChild(ellipse);
+        }
+
+        //création des messages
+        const message6 = new PIXI.Text("Sapins", style1);
+        message6.x = 480;
+        message6.y = 600;
+        appli.stage.addChild(message6);
+
+
+        let ch1 = {n: 1, x: 260, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch2 = {n: 2, x: 260, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch3 = {n: 3, x: 320, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch4 = {n: 4, x: 320, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch5 = {n: 5, x: 380, y:190, l:115, h:55, g: new PIXI.Graphics()};
+        let ch6 = {n: 6, x: 380, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch7 = {n: 7, x: 440, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch8 = {n: 8, x: 520, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch9 = {n: 9, x: 520, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch10 = {n: 10, x: 520, y:320, l:55, h:110, g: new PIXI.Graphics()};
+        let ch11 = {n: 11, x: 590, y:315, l:55, h:55, g: new PIXI.Graphics()};
+        let ch12 = {n: 12, x: 590, y:375, l:55, h:55, g: new PIXI.Graphics()};
+        let ch13 = {n: 13, x: 520, y:435, l:125, h:55, g: new PIXI.Graphics()};
+
+          const reception = new PIXI.Graphics();
+          reception.lineStyle(1, 000000); //largeur, couleur du trait
+          reception.beginFill(0xffffff); //(x, y, largeur, hauteur)
+          reception.drawRect(590, 195, 55, 110);
+          reception.endFill();
+
+
+          //création des messages
+          const message01 = new PIXI.Text(1, style1);
+          message01.x = 285;
+          message01.y = 210;
+
+          const message02 = new PIXI.Text(2, style1);
+          message02.x = 285;
+          message02.y = 275;
+
+          const message03 = new PIXI.Text(3, style1);
+          message03.x = 345;
+          message03.y = 210;
+
+          const message04 = new PIXI.Text(4, style1);
+          message04.x = 345;
+          message04.y = 275;
+
+          const message05 = new PIXI.Text(5, style1);
+          message05.x = 430;
+          message05.y = 210;
+
+          const message06 = new PIXI.Text(6, style1);
+          message06.x = 405;
+          message06.y = 275;
+
+          const message07 = new PIXI.Text(7, style1);
+          message07.x = 465;
+          message07.y = 275;
+
+          const message08 = new PIXI.Text(8, style1);
+          message08.x = 545;
+          message08.y = 275;
+
+          const message09 = new PIXI.Text(9, style1);
+          message09.x = 545;
+          message09.y = 210;
+
+          const message10 = new PIXI.Text(10, style1);
+          message10.x = 540;
+          message10.y = 365;
+
+          const message11 = new PIXI.Text(11, style1);
+          message11.x = 610;
+          message11.y = 335;
+
+          const message12 = new PIXI.Text(12, style1);
+          message12.x = 610;
+          message12.y = 395;
+
+          const message13 = new PIXI.Text(13, style1);
+          message13.x = 575;
+          message13.y = 455;
+
+          const message14 = new PIXI.Text("réception", style1);
+          message14.x =610;
+          message14.y = 280;
+          message14.skew.set(1.7,-1.6)
+
+
+//1ère étage
+
+        let ch101 = {n: 101, x: 260, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch102 = {n: 102, x: 320, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch103 = {n: 103, x: 260, y:255, l:115, h:55, g: new PIXI.Graphics()};
+        let ch104 = {n: 104, x: 380, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch105 = {n: 105, x: 440, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch106 = {n: 106, x: 380, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch107 = {n: 107, x: 440, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch108 = {n: 108, x: 520, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch109 = {n: 109, x: 520, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch110 = {n: 110, x: 590, y:190, l:55, h:120, g: new PIXI.Graphics()};
+        let ch111 = {n: 111, x: 520, y:315, l:55, h:55, g: new PIXI.Graphics()};
+        let ch112 = {n: 112, x: 590, y:315, l:55, h:55, g: new PIXI.Graphics()};
+        let ch113 = {n: 113, x: 520, y:375, l:125, h:115, g: new PIXI.Graphics()};
+
+          const message101 = new PIXI.Text("101", style1);
+          message101.x = 275;
+          message101.y = 210;
+
+          const message102 = new PIXI.Text("102", style1);
+          message102.x = 305;
+          message102.y = 275;
+
+          const message103 = new PIXI.Text("103", style1);
+          message103.x = 335;
+          message103.y = 210;
+
+          const message104 = new PIXI.Text("104", style1);
+          message104.x = 395;
+          message104.y = 210;
+
+          const message105 = new PIXI.Text("106", style1);
+          message105.x = 395;
+          message105.y = 275;
+
+          const message106 = new PIXI.Text("105", style1);
+          message106.x = 455;
+          message106.y = 210;
+
+          const message107 = new PIXI.Text("107", style1);
+          message107.x = 455;
+          message107.y = 275;
+
+          const message108 = new PIXI.Text("108", style1);
+          message108.x = 535;
+          message108.y = 210;
+
+          const message109 = new PIXI.Text("109", style1);
+          message109.x = 535;
+          message109.y = 275;
+
+          const message110 = new PIXI.Text("110", style1);
+          message110.x = 605;
+          message110.y = 240;
+
+          const message111 = new PIXI.Text("111", style1);
+          message111.x = 535;
+          message111.y = 335;
+
+          const message112 = new PIXI.Text("112", style1);
+          message112.x = 605;
+          message112.y = 335;
+
+          const message113 = new PIXI.Text("113", style1);
+          message113.x = 570;
+          message113.y = 420;
+
+//2ème étage
+        let ch209 = {n: 209, x: 520, y:375, l:125, h:115, g: new PIXI.Graphics()};
+        let ch202 = {n: 202, x: 390, y:190, l:115, h:55, g: new PIXI.Graphics()};
+        let ch203 = {n: 203, x: 390, y:255, l:115, h:55, g: new PIXI.Graphics()};
+        let ch204 = {n: 204, x: 520, y:190, l:55, h:55, g: new PIXI.Graphics()};
+        let ch205 = {n: 205, x: 520, y:255, l:55, h:55, g: new PIXI.Graphics()};
+        let ch206 = {n: 206, x: 590, y:190, l:55, h:120, g: new PIXI.Graphics()};
+        let ch207 = {n: 207, x: 520, y:315, l:55, h:55, g: new PIXI.Graphics()};
+        let ch208 = {n: 208, x: 590, y:315, l:55, h:55, g: new PIXI.Graphics()};
+        let ch201 = {n: 201, x: 260, y:192, l:125, h:115, g: new PIXI.Graphics()};
+
+
+          const message201 = new PIXI.Text("201", style1);
+          message201.x = 310;
+          message201.y = 245;
+
+          const message202 = new PIXI.Text("202", style1);
+          message202.x = 435;
+          message202.y = 210;
+
+          const message203 = new PIXI.Text("203", style1);
+          message203.x = 435;
+          message203.y = 275; appli.stage.addChild(ch7.g);
+
+          const message204 = new PIXI.Text("204", style1);
+          message204.x = 535;
+          message204.y = 210;
+
+          const message205 = new PIXI.Text("205", style1);
+          message205.x = 535;
+          message205.y = 275;
+
+          const message206 = new PIXI.Text("206", style1);
+          message206.x = 605;
+          message206.y = 240;
+
+          const message207 = new PIXI.Text("207", style1);
+          message207.x = 535;
+          message207.y = 335;
+
+          const message208 = new PIXI.Text("208", style1);
+          message208.x = 605;
+          message208.y = 335;
+
+          const message209 = new PIXI.Text("209", style1);
+          message209.x = 570;
+          message209.y = 420;
+
+          //reservation des chambres
+          ch1.g.interactive = true; //cliquer sur les chambres
+          ch1.g.on("pointertap", () => {
+            //traitement quand on clique sur la chambre
+              traiter(1);
+          });
+
+          ch2.g.interactive = true;
+          ch2.g.on("pointertap", () => {
+            traiter(2);
+          });
+
+          ch3.g.interactive = true;
+          ch3.g.on("pointertap", () => {
+            traiter(3);
+          });
+
+          ch4.g.interactive = true;
+          ch4.g.on("pointertap", () => {
+            traiter(4);
+          });
+
+          ch5.g.interactive = true;
+          ch5.g.on("pointertap", () => {
+            traiter(5);
+          });
+
+          ch6.g.interactive = true;
+          ch6.g.on("pointertap", () => {
+            traiter(6);
+          });
+
+          ch7.g.interactive = true;
+          ch7.g.on("pointertap", () => {
+            traiter(7);
+          });
+
+          ch8.g.interactive = true;
+          ch8.g.on("pointertap", () => {
+            traiter(8);
+          });
+
+          ch9.g.interactive = true;
+          ch9.g.on("pointertap", () => {
+            traiter(9);
+          });
+
+          ch10.g.interactive = true;
+          ch10.g.on("pointertap", () => {
+            traiter(10);
+          });
+
+          ch11.g.interactive = true;
+          ch11.g.on("pointertap", () => {
+            traiter(11);
+          });
+
+          ch12.g.interactive = true;
+          ch12.g.on("pointertap", () => {
+            traiter(12);
+          });
+
+          ch13.g.interactive = true;
+          ch13.g.on("pointertap", () => {
+            traiter(13);
+          });
+
+          ch101.g.interactive = true;
+          ch101.g.on("pointertap", () => {
+            traiter(101);
+          });
+
+          ch102.g.interactive = true;
+          ch102.g.on("pointertap", () => {
+            traiter(102);
+          });
+
+          ch103.g.interactive = true;
+          ch103.g.on("pointertap", () => {
+            traiter(103);
+          });
+
+          ch104.g.interactive = true;
+          ch104.g.on("pointertap", () => {
+            traiter(104);
+          });
+
+          ch105.g.interactive = true;
+          ch105.g.on("pointertap", () => {
+            traiter(105);
+          });
+
+          ch106.g.interactive = true;
+          ch106.g.on("pointertap", () => {
+            traiter(106);
+          });
+
+          ch107.g.interactive = true;
+          ch107.g.on("pointertap", () => {
+            traiter(107);
+          });
+
+          ch108.g.interactive = true;
+          ch108.g.on("pointertap", () => {
+            traiter(108);
+          });
+
+          ch109.g.interactive = true;
+          ch109.g.on("pointertap", () => {
+            traiter(109);
+          });
+
+          ch110.g.interactive = true;
+          ch110.g.on("pointertap", () => {
+            traiter(110);
+          });
+
+          ch111.g.interactive = true;
+          ch111.g.on("pointertap", () => {
+            traiter(111);
+          });
+
+          ch112.g.interactive = true;
+          ch112.g.on("pointertap", () => {
+            traiter(112);
+          });
+
+          ch113.g.interactive = true;
+          ch113.g.on("pointertap", () => {
+            traiter(113);
+          });
+
+          ch201.g.interactive = true;
+          ch201.g.on("pointertap", () => {
+            traiter(201);
+          });
+
+          ch202.g.interactive = true;
+          ch202.g.on("pointertap", () => {
+            traiter(202);
+          });
+
+          ch203.g.interactive = true;
+          ch203.g.on("pointertap", () => {
+            traiter(203);
+          });
+
+          ch204.g.interactive = true;
+          ch204.g.on("pointertap", () => {
+            traiter(204);
+          });
+
+          ch205.g.interactive = true;
+          ch205.g.on("pointertap", () => {
+            traiter(205);
+          });
+
+          ch206.g.interactive = true;
+          ch206.g.on("pointertap", () => {
+            traiter(206);
+          });
+
+          ch207.g.interactive = true;
+          ch207.g.on("pointertap", () => {
+            traiter(207);
+          });
+
+          ch208.g.interactive = true;
+          ch208.g.on("pointertap", () => {
+            traiter(208);
+          });
+
+          ch209.g.interactive = true;
+          ch209.g.on("pointertap", () => {
+            traiter(209);
+          });
+
+  function changeetage() {
+    traiter_date();
+      if (document.getElementById("etage").value == "rdc"){
+        appli.stage.removeChild(ch101.g);
+        appli.stage.removeChild(ch102.g);
+        appli.stage.removeChild(ch103.g);
+        appli.stage.removeChild(ch104.g);
+        appli.stage.removeChild(ch105.g);
+        appli.stage.removeChild(ch106.g);
+        appli.stage.removeChild(ch107.g);
+        appli.stage.removeChild(ch108.g);
+        appli.stage.removeChild(ch109.g);
+        appli.stage.removeChild(ch110.g);
+        appli.stage.removeChild(ch111.g);
+        appli.stage.removeChild(ch112.g);
+        appli.stage.removeChild(ch113.g);
+        appli.stage.removeChild(ch201.g);
+        appli.stage.removeChild(ch202.g);
+        appli.stage.removeChild(ch203.g);
+        appli.stage.removeChild(ch204.g);
+        appli.stage.removeChild(ch205.g);
+        appli.stage.removeChild(ch206.g);
+        appli.stage.removeChild(ch207.g);
+        appli.stage.removeChild(ch208.g);
+        appli.stage.removeChild(ch209.g);
+        appli.stage.removeChild(message101);
+        appli.stage.removeChild(message102);
+        appli.stage.removeChild(message103);
+        appli.stage.removeChild(message104);
+        appli.stage.removeChild(message105);
+        appli.stage.removeChild(message106);
+        appli.stage.removeChild(message107);
+        appli.stage.removeChild(message108);
+        appli.stage.removeChild(message109);
+        appli.stage.removeChild(message110);
+        appli.stage.removeChild(message111);
+        appli.stage.removeChild(message112);
+        appli.stage.removeChild(message113);
+        appli.stage.removeChild(message201);
+        appli.stage.removeChild(message202);
+        appli.stage.removeChild(message203);
+        appli.stage.removeChild(message204);
+        appli.stage.removeChild(message205);
+        appli.stage.removeChild(message206);
+        appli.stage.removeChild(message207);
+        appli.stage.removeChild(message208);
+        appli.stage.removeChild(message209);
+
+        dessinerChambre(ch1);
+        appli.stage.addChild(ch1.g);
+        infobulle(ch1);
+        dessinerChambre(ch2);
+        infobulle(ch2);
+        appli.stage.addChild(ch2.g);
+        dessinerChambre(ch3);
+        appli.stage.addChild(ch3.g);
+        infobulle(ch3);
+        dessinerChambre(ch4);
+        appli.stage.addChild(ch4.g);
+        infobulle(ch4);
+        dessinerChambre(ch5);
+        appli.stage.addChild(ch5.g);
+        infobulle(ch5);
+        dessinerChambre(ch6);
+        appli.stage.addChild(ch6.g);
+        infobulle(ch6);
+        dessinerChambre(ch7);
+        appli.stage.addChild(ch7.g);
+        infobulle(ch7);
+        dessinerChambre(ch8);
+        appli.stage.addChild(ch8.g);
+        infobulle(ch8);
+        dessinerChambre(ch9);
+        appli.stage.addChild(ch9.g);
+        infobulle(ch9);
+        dessinerChambre(ch10);
+        appli.stage.addChild(ch10.g);
+        infobulle(ch10);
+        dessinerChambre(ch11);
+        appli.stage.addChild(ch11.g);
+        infobulle(ch11);
+        dessinerChambre(ch12);
+        appli.stage.addChild(ch12.g);
+        infobulle(ch12);
+        dessinerChambre(ch13);
+        appli.stage.addChild(ch13.g);
+        infobulle(ch13);
+
+        appli.stage.addChild(reception);
+        appli.stage.addChild(message01);
+        appli.stage.addChild(message02);
+        appli.stage.addChild(message03);
+        appli.stage.addChild(message04);
+        appli.stage.addChild(message05);
+        appli.stage.addChild(message06);
+        appli.stage.addChild(message07);
+        appli.stage.addChild(message08);
+        appli.stage.addChild(message09);
+        appli.stage.addChild(message10);
+        appli.stage.addChild(message11);
+        appli.stage.addChild(message12);
+        appli.stage.addChild(message13);
+        appli.stage.addChild(message14);
+
+      }
+
+      if (document.getElementById("etage").value == "1e"){
+        appli.stage.removeChild(ch1.g);
+        appli.stage.removeChild(ch2.g);
+        appli.stage.removeChild(ch3.g);
+        appli.stage.removeChild(ch4.g);
+        appli.stage.removeChild(ch5.g);
+        appli.stage.removeChild(ch6.g);
+        appli.stage.removeChild(ch7.g);
+        appli.stage.removeChild(ch8.g);
+        appli.stage.removeChild(ch9.g);
+        appli.stage.removeChild(ch10.g);
+        appli.stage.removeChild(ch11.g);
+        appli.stage.removeChild(ch12.g);
+        appli.stage.removeChild(ch13.g);
+        appli.stage.removeChild(reception);
+        appli.stage.removeChild(ch201.g);
+        appli.stage.removeChild(ch202.g);
+        appli.stage.removeChild(ch203.g);
+        appli.stage.removeChild(ch204.g);
+        appli.stage.removeChild(ch205.g);
+        appli.stage.removeChild(ch206.g);
+        appli.stage.removeChild(ch207.g);
+        appli.stage.removeChild(ch208.g);
+        appli.stage.removeChild(ch209.g);
+        appli.stage.removeChild(message01);
+        appli.stage.removeChild(message02);
+        appli.stage.removeChild(message03);
+        appli.stage.removeChild(message04);
+        appli.stage.removeChild(message05);
+        appli.stage.removeChild(message06);
+        appli.stage.removeChild(message07);
+        appli.stage.removeChild(message08);
+        appli.stage.removeChild(message09);
+        appli.stage.removeChild(message10);
+        appli.stage.removeChild(message11);
+        appli.stage.removeChild(message12);
+        appli.stage.removeChild(message13);
+        appli.stage.removeChild(message14);
+        appli.stage.removeChild(message201);
+        appli.stage.removeChild(message202);
+        appli.stage.removeChild(message203);
+        appli.stage.removeChild(message204);
+        appli.stage.removeChild(message205);
+        appli.stage.removeChild(message206);
+        appli.stage.removeChild(message207);
+        appli.stage.removeChild(message208);
+        appli.stage.removeChild(message209);
+
+        dessinerChambre(ch101);
+        appli.stage.addChild(ch101.g);
+        infobulle(ch101);
+        dessinerChambre(ch102);
+        appli.stage.addChild(ch102.g);
+        infobulle(ch102);
+        dessinerChambre(ch103);
+        appli.stage.addChild(ch103.g);
+        infobulle(ch103);
+        dessinerChambre(ch104);
+        appli.stage.addChild(ch104.g);
+        infobulle(ch104);
+        dessinerChambre(ch105);
+        appli.stage.addChild(ch105.g);
+        infobulle(ch105);
+        dessinerChambre(ch106);
+        appli.stage.addChild(ch106.g);
+        infobulle(ch106);
+        dessinerChambre(ch107);
+        appli.stage.addChild(ch107.g);
+        infobulle(ch107);
+        dessinerChambre(ch108);
+        appli.stage.addChild(ch108.g);
+        infobulle(ch108);
+        dessinerChambre(ch109);
+        appli.stage.addChild(ch109.g);
+        infobulle(ch109);
+        dessinerChambre(ch110);
+        appli.stage.addChild(ch110.g);
+        infobulle(ch110);
+        dessinerChambre(ch111);
+        appli.stage.addChild(ch111.g);
+        infobulle(ch111);
+        dessinerChambre(ch112);
+        appli.stage.addChild(ch112.g);
+        infobulle(ch112);
+        dessinerChambre(ch113);
+        appli.stage.addChild(ch113.g);
+        infobulle(ch113);
+
+        appli.stage.addChild(message101);
+        appli.stage.addChild(message102);
+        appli.stage.addChild(message103);
+        appli.stage.addChild(message104);
+        appli.stage.addChild(message105);
+        appli.stage.addChild(message106);
+        appli.stage.addChild(message107);
+        appli.stage.addChild(message108);
+        appli.stage.addChild(message109);
+        appli.stage.addChild(message110);
+        appli.stage.addChild(message111);
+        appli.stage.addChild(message112);
+        appli.stage.addChild(message113);
+      }
+
+      if (document.getElementById("etage").value == "2e"){
+        appli.stage.removeChild(ch1.g);
+        appli.stage.removeChild(ch2.g);
+        appli.stage.removeChild(ch3.g);
+        appli.stage.removeChild(ch4.g);
+        appli.stage.removeChild(ch5.g);
+        appli.stage.removeChild(ch6.g);
+        appli.stage.removeChild(ch7.g);
+        appli.stage.removeChild(ch8.g);
+        appli.stage.removeChild(ch9.g);
+        appli.stage.removeChild(ch10.g);
+        appli.stage.removeChild(ch11.g);
+        appli.stage.removeChild(ch12.g);
+        appli.stage.removeChild(ch13.g);
+        appli.stage.removeChild(reception);
+        appli.stage.removeChild(ch101.g);
+        appli.stage.removeChild(ch101.g);
+        appli.stage.removeChild(ch102.g);
+        appli.stage.removeChild(ch103.g);
+        appli.stage.removeChild(ch104.g);
+        appli.stage.removeChild(ch105.g);
+        appli.stage.removeChild(ch106.g);
+        appli.stage.removeChild(ch107.g);
+        appli.stage.removeChild(ch108.g);
+        appli.stage.removeChild(ch109.g);
+        appli.stage.removeChild(ch110.g);
+        appli.stage.removeChild(ch111.g);
+        appli.stage.removeChild(ch112.g);
+        appli.stage.removeChild(ch113.g);
+        appli.stage.removeChild(message01);
+        appli.stage.removeChild(message02);
+        appli.stage.removeChild(message03);
+        appli.stage.removeChild(message04);
+        appli.stage.removeChild(message05);
+        appli.stage.removeChild(message06);
+        appli.stage.removeChild(message07);
+        appli.stage.removeChild(message08);
+        appli.stage.removeChild(message09);
+        appli.stage.removeChild(message10);
+        appli.stage.removeChild(message11);
+        appli.stage.removeChild(message12);
+        appli.stage.removeChild(message13);
+        appli.stage.removeChild(message14);
+        appli.stage.removeChild(message101);
+        appli.stage.removeChild(message102);
+        appli.stage.removeChild(message103);
+        appli.stage.removeChild(message104);
+        appli.stage.removeChild(message105);
+        appli.stage.removeChild(message106);
+        appli.stage.removeChild(message107);
+        appli.stage.removeChild(message108);
+        appli.stage.removeChild(message109);
+        appli.stage.removeChild(message110);
+        appli.stage.removeChild(message111);
+        appli.stage.removeChild(message112);
+        appli.stage.removeChild(message113);
+
+        dessinerChambre(ch201);
+        appli.stage.addChild(ch201.g);
+        infobulle(ch201);
+        dessinerChambre(ch202);
+        appli.stage.addChild(ch202.g);
+        infobulle(ch202);
+        dessinerChambre(ch203);
+        appli.stage.addChild(ch203.g);
+        infobulle(ch203);
+        dessinerChambre(ch204);
+        appli.stage.addChild(ch204.g);
+        infobulle(ch204);
+        dessinerChambre(ch205);
+        appli.stage.addChild(ch205.g);
+        infobulle(ch205);
+        dessinerChambre(ch206);
+        appli.stage.addChild(ch206.g);
+        infobulle(ch206);
+        dessinerChambre(ch207);
+        appli.stage.addChild(ch207.g);
+        infobulle(ch207);
+        dessinerChambre(ch208);
+        appli.stage.addChild(ch208.g);
+        infobulle(ch208);
+        dessinerChambre(ch209);
+        appli.stage.addChild(ch209.g);
+        infobulle(ch209);
+
+        appli.stage.addChild(message201);
+        appli.stage.addChild(message202);
+        appli.stage.addChild(message203);
+        appli.stage.addChild(message204);
+        appli.stage.addChild(message205);
+        appli.stage.addChild(message206);
+        appli.stage.addChild(message207);
+        appli.stage.addChild(message208);
+        appli.stage.addChild(message209);
+      }
+  }
+    </script>
+    </center>
+  </body>
+</html>

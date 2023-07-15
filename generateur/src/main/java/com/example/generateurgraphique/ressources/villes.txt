@@ -1,0 +1,6 @@
+51100;reims
+52000;chaumont
+10000;troyes
+74000;annecy
+06000;nice
+75000;paris

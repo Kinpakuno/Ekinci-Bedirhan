@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <title>Exemple d'un selecteur de date ("date picker")</title>
+    </head>
+    <body>
+        <main>
+            <h1>Exemple d'un selecteur de date ("date picker")</h1>
+
+            <p>Date : <input id="sel_date" type="date" onchange="traiter_date()"/></p>
+
+            <script>
+                function traiter_date() {
+                    alert(document.getElementById("sel_date").value);
+                }
+            </script>
+
+        </main>
+    </body>
+</html>

@@ -1,0 +1,15 @@
+grille évaluation :
+    - plan du site
+    - formulaire
+    - tableau
+    - coût du prêt
+    - respect des règles de la typographie (alignement à droite des nombres, format monétaire français, ...)
+    - validité des informations saisies, signalement des erreurs de saisies
+    - mise en page, CSS
+    - police de caractères à chasse fixe
+    - quand on revient sur la page du formulaire, les champs doivent être remplis par les valeurs précédemment saisies
+    - liens pour aller en bas de page et liens pour aller en bas de page
+    - années impaires : 1 paire de couleur pour les lignes, années paires : une autre paire de couleur pour les lignes
+    - infobulles
+    - pouvoir choisir entre taux proportionnel et taux actuariel : utilsation de boutons radio
+    - en-tête et pied-de-page

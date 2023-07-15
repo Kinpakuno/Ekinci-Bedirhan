@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Démo Hôtel 2</title>
+    <meta charset="UTF-8" />
+    <script src="bibliotheques/pixi.js"></script>
+  </head>
+  
+  <body>
+    <p>Appuyez sur S pour enlever le sprite, appuyez sur A pour ajouter le sprite</p> 
+    <script>
+        // création de l'application Pixi
+        const appli = new PIXI.Application({ width: 1000, height: 400, backgroundColor: 0xeeeeee, antialias: true, clearBeforeRender: true }); // largeur, hauteur
+        document.body.appendChild(appli.view);
+
+        // tableau pour la gestion des touches
+        var dicoTouchesAppuyees = [];
+
+
+        // sprite 1
+        const texture = new PIXI.Texture.from('images/tux.png');
+        const sprite1 = new PIXI.Sprite(texture);
+        sprite1.x = 500;
+        sprite1.y= 200;
+        sprite1.width = 20;
+        sprite1.height = 20;
+        sprite1.rotation = 0; // en radian
+        appli.stage.addChild(sprite1);
+
+
+        // boucle de rendu
+        appli.ticker.add((delta) => {
+            // gestion du clavier (meilleure technique que dans la démo précédente)
+            if (dicoTouchesAppuyees[65]) { // a
+                // ajout du sprite dans la scéne
+                appli.stage.addChild(sprite1);
+            }
+            
+            if (dicoTouchesAppuyees[83]) { // s
+                // suppression du sprite de la scéne
+                appli.stage.removeChild(sprite1);
+            }
+        });
+
+        // gestion des touches avec un tableau
+        // gestion des événements
+        window.addEventListener("keydown", gererTouchesEnfoncees);
+        window.addEventListener("keyup", gererTouchesRelachees);
+
+        function gererTouchesEnfoncees(e) {
+            //console.log(e.keyCode);
+            dicoTouchesAppuyees[e.keyCode] = true;
+        }
+
+        function gererTouchesRelachees(e) {
+            //console.log(e.keyCode);
+            dicoTouchesAppuyees[e.keyCode] = false;
+        }
+        
+    </script>
+
+  </body>
+</html>

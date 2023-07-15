@@ -1,0 +1,20 @@
+header {
+    border: 2px solid #40E0D0;
+    /* Couleur vert turquoise */
+    padding: 10px;
+    text-align: center;
+}
+
+#map {
+    height: 800px;
+    width: 1080px;
+}
+
+.flex {
+    display: flex;
+}
+
+.map,
+.texte {
+    width: 50%;
+}

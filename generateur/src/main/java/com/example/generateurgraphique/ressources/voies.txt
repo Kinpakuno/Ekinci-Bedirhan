@@ -1,0 +1,6 @@
+rue
+avenue
+boulevard
+place
+impasse
+allée

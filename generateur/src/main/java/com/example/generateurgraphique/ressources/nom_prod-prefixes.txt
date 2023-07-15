@@ -1,0 +1,11 @@
+big
+small
+thin
+turbo
+mega
+nano
+super
+micro
+zen
+easy
+mini

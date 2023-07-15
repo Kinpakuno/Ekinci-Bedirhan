@@ -1,0 +1,6 @@
+perceuse;15;400
+tournevis;2;12
+scie;2;28
+marteau;3;35
+clé;1;298
+meuleuse;35;190
